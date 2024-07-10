@@ -1,0 +1,95 @@
+from collections import Counter
+# opening text file
+file = open('huffman.txt','r')
+f= file.readlines()
+
+characters = []
+for line in f:
+
+    for c in line.replace('\n',""):
+        characters.append(c)
+
+# creating node class to initialize our node features
+class Node:
+    left = None
+    right = None
+    letter = None
+    sum = None
+    def __init__(self, left, right, letter, sum):
+        self.left = left
+        self.right = right
+        self.letter = letter
+        self.sum = sum
+
+# creating a function to create leafnodes of all characters
+def generateLeafNodes(string):
+    freq1 = Counter(string)
+    # sorts descending
+    freq = sorted(freq1.items(), key=lambda x: x[1], reverse=True)
+    leafNodes = []
+    for (char, frequency) in freq:
+        leafNode = Node(None, None, char, frequency)
+        leafNodes.append(leafNode)
+    return leafNodes
+# creating our binary tree from our leaf nodes
+def generateTree(string):
+    freq = generateLeafNodes(string)
+    while(len(freq) > 1):
+        leftNode = freq[-1]
+        rightNode = freq[-2]
+        freq = freq[:-2]
+        newNode = Node(leftNode, rightNode, None, leftNode.sum + rightNode.sum)
+        freq.append(newNode)
+        freq = sorted(Counter(freq), key=lambda x: x.sum, reverse=True)
+
+    return freq[0]
+
+huffmanDict={}
+#function to put 0 on every left branch and 1 on every right branch
+def encodeTable(node, binString=''):
+    if(node.left != None):
+        encodeTable(node.left, binString + '0')
+    else:
+        huffmanDict.update({node.letter: binString})
+    if(node.right != None):
+        encodeTable(node.right, binString + '1')
+    else:
+        huffmanDict.update({node.letter: binString})
+
+# function that loops through input text and encodes table and creates a new string with the matching
+def decode(binStrings, table):
+    binStrings = binStrings.split(' ')
+    stringSoFar = ""
+    for binString in binStrings:
+        for char in table.keys():
+            encoding = table.get(char)
+            if(encoding == binString):
+                stringSoFar += char
+    return stringSoFar
+
+
+
+
+
+
+
+
+def encodeString(charString, table):
+    binString = ""
+
+    for char in charString:
+        binString += table.get(char) + " "
+    return binString
+
+tree = generateTree(characters)
+encodeTable(tree)
+
+print(huffmanDict)
+
+binstring1=(encodeString(characters,huffmanDict))
+
+print(decode(binstring1,huffmanDict))
+
+
+print(decode("000 001 01000", huffmanDict))
+print(encodeString("dab", huffmanDict))
